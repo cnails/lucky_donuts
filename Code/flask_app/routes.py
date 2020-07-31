@@ -184,7 +184,7 @@ def write_existent_dict(id_, lst, directory=DIRECTORY_MARKUP):
                 queue = deque()
         if queue:
             for j, queue_elem in enumerate(queue):
-                queue[j][2] = i
+                queue[j][2] = i + 1
                 res.append(queue[j])
         for i in range(len(res)):
             res[i].insert(0, str(id_))
