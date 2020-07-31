@@ -1,0 +1,7 @@
+Remark
+Praise
+Insult
+Bug
+Defect
+Question
+Wish
