@@ -1,20 +1,21 @@
 import random as random_module
 import sys
+import json
 from collections import deque, defaultdict
 from functools import lru_cache
 from pathlib import Path
 
 import nltk
 from flask import render_template, request, jsonify, send_from_directory
-from torch.utils import data
+# from torch.utils import data
 
-from data_load import PropDataset, pad
-from eval.convert import convert, remove_duplicates
-from flask_app import app, criterion, binary_criterion
+# from data_load import PropDataset, pad
+# from eval.convert import convert, remove_duplicates
+from flask_app import app
 from hp import BATCH_SIZE, BERT_PATH, JOINT_BERT_PATH, GRANU_BERT_PATH, MGN_SIGM_BERT_PATH
 from preprocess import read_data, clean_text
 from settings import load_model
-from train import eval
+# from train import eval
 
 sys.path.append('../secret_repo')
 
@@ -24,6 +25,7 @@ DIRECTORY_DEV = BASE_DIR.joinpath('data_ru', 'protechn_corpus_eval', 'dev')
 DIRECTORY_TEST = BASE_DIR.joinpath('data_ru', 'protechn_corpus_eval', 'test')
 DIRECTORY_MARKUP = BASE_DIR.joinpath('data_ru', 'protechn_corpus_eval', 'markup')
 DIRECTORY_PREDICT = BASE_DIR.joinpath('data_ru', 'protechn_corpus_eval', 'predict')
+DATA_FILE = "../Resources/data.json"
 
 TECHNIQUES = [
     "No", "Remark", "Praise", "Insult", "Bug", "Defect", "Question", "Wish"
@@ -78,6 +80,33 @@ def markup():
 def test():
     return render_template('test.html')
 
+@app.route("/get_random_comment", methods=['GET'])
+def get_random_comment():
+    with open(DATA_FILE, "r") as fd:
+        data = json.load(fd)
+    max_data = 0
+    while True:
+        if max_data == len(data):
+            return
+        i = random_module.randint(0, len(data))
+        if (data[i]['readed'] == 0 and data[i]['rating'] < 3):
+            break
+        max_data += 1
+    data[i]['readed'] = 1
+    rating = data[i]['Rating']
+    title = data[i]['Title']
+    text = data[i]['Review']
+    res = {}
+    res['rating'] = rating
+    res['title'] = title
+    res['text'] = text
+    with open(DATA_FILE, "w") as fd:
+        fd.write(json.dumps(data))
+    return json.dumps(res)
+
+@app.route('/markup_new', methods=['GET'])
+def markup_new():
+    return render_template('markup_new.html')
 
 @app.route('/random', methods=['GET'])
 def random():
@@ -264,98 +293,98 @@ def overwrite_one_article(id_, directory=DIRECTORY_PREDICT):
     return sent_text
 
 
-@app.route('/_launch_model', methods=['POST'])
-def launch_model():
-    full_text = request.form['full_text']
-    id_ = request.form['id']
-    model_type = request.form['model_type']
+# @app.route('/_launch_model', methods=['POST'])
+# def launch_model():
+#     full_text = request.form['full_text']
+#     id_ = request.form['id']
+#     model_type = request.form['model_type']
 
-    global BERT, JOINT, GRANU, MGN, NUM_TASK, MASKING, HIER
-    BERT = model_type == BERT_PATH
-    JOINT = model_type == JOINT_BERT_PATH
-    GRANU = model_type == GRANU_BERT_PATH
-    MGN = model_type == MGN_SIGM_BERT_PATH
+#     global BERT, JOINT, GRANU, MGN, NUM_TASK, MASKING, HIER
+#     BERT = model_type == BERT_PATH
+#     JOINT = model_type == JOINT_BERT_PATH
+#     GRANU = model_type == GRANU_BERT_PATH
+#     MGN = model_type == MGN_SIGM_BERT_PATH
 
-    # either of the four variants:
-    # BERT = False
-    # JOINT = False
-    # GRANU = False
-    # MGN = True
+#     # either of the four variants:
+#     # BERT = False
+#     # JOINT = False
+#     # GRANU = False
+#     # MGN = True
 
-    assert BERT or JOINT or GRANU or MGN
-    assert not (BERT and JOINT) and not (BERT and GRANU) and not (BERT and MGN) \
-           and not (JOINT and GRANU) and not (JOINT and MGN) and not (GRANU and MGN)
+#     assert BERT or JOINT or GRANU or MGN
+#     assert not (BERT and JOINT) and not (BERT and GRANU) and not (BERT and MGN) \
+#            and not (JOINT and GRANU) and not (JOINT and MGN) and not (GRANU and MGN)
 
-    # either of the two variants
-    SIGMOID_ACTIVATION = True
-    RELU_ACTIVATION = False
-    assert not (SIGMOID_ACTIVATION and RELU_ACTIVATION) and (SIGMOID_ACTIVATION or RELU_ACTIVATION)
+#     # either of the two variants
+#     SIGMOID_ACTIVATION = True
+#     RELU_ACTIVATION = False
+#     assert not (SIGMOID_ACTIVATION and RELU_ACTIVATION) and (SIGMOID_ACTIVATION or RELU_ACTIVATION)
 
-    if BERT:
-        NUM_TASK = 1
-        MASKING = 0
-        HIER = 0
-    elif JOINT:
-        NUM_TASK = 2
-        MASKING = 0
-        HIER = 0
-    elif GRANU:
-        NUM_TASK = 2
-        MASKING = 0
-        HIER = 1
-    elif MGN:
-        NUM_TASK = 2
-        MASKING = 1
-        HIER = 0
-    else:
-        raise ValueError("You should choose one of bert, joint, granu and mgn in options")
+#     if BERT:
+#         NUM_TASK = 1
+#         MASKING = 0
+#         HIER = 0
+#     elif JOINT:
+#         NUM_TASK = 2
+#         MASKING = 0
+#         HIER = 0
+#     elif GRANU:
+#         NUM_TASK = 2
+#         MASKING = 0
+#         HIER = 1
+#     elif MGN:
+#         NUM_TASK = 2
+#         MASKING = 1
+#         HIER = 0
+#     else:
+#         raise ValueError("You should choose one of bert, joint, granu and mgn in options")
 
-    dct = {
-        'NUM_TASK': NUM_TASK, 'MASKING': MASKING, 'SIGMOID_ACTIVATION': SIGMOID_ACTIVATION,
-        'HIER': HIER
-    }
-    model = load_model(model_type, **dct)
+#     dct = {
+#         'NUM_TASK': NUM_TASK, 'MASKING': MASKING, 'SIGMOID_ACTIVATION': SIGMOID_ACTIVATION,
+#         'HIER': HIER
+#     }
+#     model = load_model(model_type, **dct)
 
-    if not id_:
-        ids = get_existent_ids()
-        id_ = random_module.randint(0, N)
-        while id_ in ids:
-            id_ = random_module.randint(0, N)
-        with open(DIRECTORY_PREDICT.joinpath(f'article{id_}.txt'), 'w', encoding='utf-8') as f:
-            f.write(full_text)
+#     if not id_:
+#         ids = get_existent_ids()
+#         id_ = random_module.randint(0, N)
+#         while id_ in ids:
+#             id_ = random_module.randint(0, N)
+#         with open(DIRECTORY_PREDICT.joinpath(f'article{id_}.txt'), 'w', encoding='utf-8') as f:
+#             f.write(full_text)
 
-    text = overwrite_one_article(id_, directory=DIRECTORY_PREDICT)
+#     text = overwrite_one_article(id_, directory=DIRECTORY_PREDICT)
 
-    my_predict_dataset = PropDataset(DIRECTORY_PREDICT, is_test=True)
-    my_predict_iter = data.DataLoader(
-        dataset=my_predict_dataset, batch_size=BATCH_SIZE, shuffle=False, num_workers=1,
-        collate_fn=pad
-    )
+#     my_predict_dataset = PropDataset(DIRECTORY_PREDICT, is_test=True)
+#     my_predict_iter = data.DataLoader(
+#         dataset=my_predict_dataset, batch_size=BATCH_SIZE, shuffle=False, num_workers=1,
+#         collate_fn=pad
+#     )
 
-    tmp_file = 'tmp.txt'
-    eval(model, my_predict_iter, tmp_file, criterion, binary_criterion, NUM_TASK=NUM_TASK)
-    ids, texts = read_data(DIRECTORY_PREDICT, is_test=True)
-    t_texts = clean_text(texts, ids)
-    flat_texts = [sentence for article in t_texts for sentence in article]
-    fi, prop_sents = convert(NUM_TASK - 1, flat_texts, tmp_file)
-    prop_sents = prop_sents[id_]
-    prop_sents = ['1' if elem else '' for elem in prop_sents]
-    results = remove_duplicates(fi)
+#     tmp_file = 'tmp.txt'
+#     eval(model, my_predict_iter, tmp_file, criterion, binary_criterion, NUM_TASK=NUM_TASK)
+#     ids, texts = read_data(DIRECTORY_PREDICT, is_test=True)
+#     t_texts = clean_text(texts, ids)
+#     flat_texts = [sentence for article in t_texts for sentence in article]
+#     fi, prop_sents = convert(NUM_TASK - 1, flat_texts, tmp_file)
+#     prop_sents = prop_sents[id_]
+#     prop_sents = ['1' if elem else '' for elem in prop_sents]
+#     results = remove_duplicates(fi)
 
-    DIRECTORY_PREDICT.joinpath(f'article{id_}.txt').rename(
-        DIRECTORY_MARKUP.joinpath(f'article{id_}.txt'))
+#     DIRECTORY_PREDICT.joinpath(f'article{id_}.txt').rename(
+#         DIRECTORY_MARKUP.joinpath(f'article{id_}.txt'))
 
-    lst = [set() for _ in range(len(full_text))]
-    source_lst = [set() for _ in range(len(full_text))]
-    for inner_lst in results:
-        for i in range(inner_lst[-2], inner_lst[-1]):
-            lst[i].add(HUMAN_READABLE_TECHNIQUES[TECHNIQUES.index(inner_lst[-3])])
-            source_lst[i].add(inner_lst[-3])
+#     lst = [set() for _ in range(len(full_text))]
+#     source_lst = [set() for _ in range(len(full_text))]
+#     for inner_lst in results:
+#         for i in range(inner_lst[-2], inner_lst[-1]):
+#             lst[i].add(HUMAN_READABLE_TECHNIQUES[TECHNIQUES.index(inner_lst[-3])])
+#             source_lst[i].add(inner_lst[-3])
 
-    correct_lst = ['; '.join(list(elem)) for elem in lst]
-    write_existent_dict(id_, source_lst, directory=DIRECTORY_MARKUP)
+#     correct_lst = ['; '.join(list(elem)) for elem in lst]
+#     write_existent_dict(id_, source_lst, directory=DIRECTORY_MARKUP)
 
-    return jsonify(result={'id': id_, 'list': correct_lst, 'text': text, 'prop_sents': prop_sents})
+#     return jsonify(result={'id': id_, 'list': correct_lst, 'text': text, 'prop_sents': prop_sents})
 
 
 def get_num_of_techniques_for_id(id_, directory=DIRECTORY_TRAIN):
