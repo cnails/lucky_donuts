@@ -19,5 +19,5 @@ for glob_title, field_name, encoding in zip(
                     texts.append(row[review_text_ix].replace('\n', ' ').strip())
                 i += 1
 
-with open('texts.txt', 'w', encoding='utf-8') as f:
+with open('../Resources/texts.txt', 'w', encoding='utf-8') as f:
     f.write('\n'.join(texts))

@@ -13,7 +13,7 @@ class BertMultiTaskLearning(PreTrainedBertModel):
 
         super().__init__(config)
 
-        if dct is None:
+        if dct is None or not dct:
             dct = {
                 'NUM_TASK': NUM_TASK, 'MASKING': MASKING,
                 'SIGMOID_ACTIVATION': SIGMOID_ACTIVATION, 'HIER': HIER, 'VOCAB': VOCAB,
