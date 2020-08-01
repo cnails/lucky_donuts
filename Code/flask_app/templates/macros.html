@@ -76,6 +76,9 @@
             Request.send(null);
         }
     }
+    function getRandomInt(max) {
+       return Math.floor(Math.random() * Math.floor(max));
+    }
     const star = document.getElementById("star");
     function get_random_comment() {
         // const star = document.getElementById("star");
@@ -85,19 +88,24 @@
             res = JSON.parse(e.response);
             console.log(res);
             document.getElementById("text").innerHTML = res.text;
-            let i = 1;
+            let i = 2;
             while (i < res.rating) {
                 rating_area.appendChild(star.cloneNode(true));
                 i++;
             }
         });
+        document.getElementById("span_id").setAttribute('name', getRandomInt(999999999));
     }
+    setTimeout(function() {
+        document.getElementById("span_id").setAttribute('name', getRandomInt(999999999));
+    }, 500);
     get_random_comment();
     </script>
 {% endmacro %}
 
 {% macro textarea(type) %}
     <script>
+        
         // updates text field and empties id of the text
         $('#textarea{{ type }}').on('input', function() {
 
