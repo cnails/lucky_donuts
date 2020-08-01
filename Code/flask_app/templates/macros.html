@@ -87,18 +87,29 @@
         SendRequest("get", "get_random_comment", "", function(e) {
             res = JSON.parse(e.response);
             console.log(res);
-            document.getElementById("text").innerHTML = res.text;
+            let ind = 0;
+            document.querySelectorAll("#text > span").forEach(el => el.remove());
+            // document.getElementById("text").childNodes.forEach(elem => elem.remove());
+            for (letter of res.text) {
+            // res.forEach(letter => {
+                var l = document.createElement("span");
+                l.setAttribute("id", "id" + ind);
+                l.innerHTML = letter;
+                ind += 1;
+                document.getElementById("text").appendChild(l);
+            };
+            // document.getElementById("text").innerHTML = res.text;
             let i = 2;
             while (i < res.rating) {
                 rating_area.appendChild(star.cloneNode(true));
                 i++;
             }
         });
-        document.getElementById("span_id").setAttribute('name', getRandomInt(999999999));
+        // document.getElementById("span_id").setAttribute('name', getRandomInt(999999999));
     }
-    setTimeout(function() {
-        document.getElementById("span_id").setAttribute('name', getRandomInt(999999999));
-    }, 500);
+    // setTimeout(function() {
+    //     document.getElementById("span_id").setAttribute('name', getRandomInt(999999999));
+    // }, 500);
     get_random_comment();
     </script>
 {% endmacro %}
