@@ -192,7 +192,7 @@
     <script>
         // updates text field and empties id of the text
         $('#textarea{{ type }}').on('input', function() {
-
+            console.log("{{type}}");
             let str = $(this).val();
             let full_str = textToSpans(str, "{{ type }}");
             $("#textarea{{ type }}").val(full_str.replace(/(<([^>]+)>)/ig,"").replace(/(&nbsp;)/ig, " ").replace(/(&#8209;)/ig, "-"));

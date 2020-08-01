@@ -106,7 +106,7 @@ def get_random_comment():
     return json.dumps(res)
 
 @app.route('/markup', methods=['GET'])
-def markup_new():
+def markup():
     return render_template('markup_new.html')
 
 @app.route('/random', methods=['GET'])
