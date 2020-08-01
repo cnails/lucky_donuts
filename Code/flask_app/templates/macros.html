@@ -1,9 +1,10 @@
 {% macro modal() %}
+    
     <div id="myModal" class="my-modal">
         <div class="my-modal-content">
             <div class="my-modal-header">
                 <span id="my-close">&times;</span>
-                <h2>Выберите технику пропаганды</h2>
+                <h2>Выберите один из классов</h2>
             </div>
             <div class="my-modal-body">
                 <form id="answers">
@@ -13,6 +14,86 @@
             <div id="my-modal-footer" style="white-space: pre-line;"><h3 style="text-align: center;"></h3></div>
         </div>
     </div>
+{% endmacro %}
+
+{% macro get_random_comment() %}
+    <script>
+        function CreateRequest()
+        {
+            var Request = false;
+
+            if (window.XMLHttpRequest)
+            {
+                Request = new XMLHttpRequest();
+            }
+            else if (window.ActiveXObject)
+            {
+                try
+                {
+                    Request = new ActiveXObject("Microsoft.XMLHTTP");
+                }    
+                catch (CatchException)
+                {
+                    Request = new ActiveXObject("Msxml2.XMLHTTP");
+                }
+            }
+        
+            if (!Request)
+            {
+                alert("Невозможно создать XMLHttpRequest");
+            }
+            
+            return Request;
+        }
+        function SendRequest(r_method, r_path, r_args, r_handler)
+    {
+        var Request = CreateRequest();
+        
+        if (!Request)
+        {
+            return;
+        }
+        
+        Request.onreadystatechange = function()
+        {
+            if (Request.readyState == 4)
+            {
+                r_handler(Request);
+            }
+        }
+        
+        if (r_method.toLowerCase() == "get" && r_args.length > 0)
+        r_path += "?" + r_args;
+        Request.open(r_method, r_path, true);
+        
+        if (r_method.toLowerCase() == "post")
+        {
+            Request.setRequestHeader("Content-Type","application/x-www-form-urlencoded; charset=utf-8");
+            Request.send(r_args);
+        }
+        else
+        {
+            Request.send(null);
+        }
+    }
+    const star = document.getElementById("star");
+    function get_random_comment() {
+        // const star = document.getElementById("star");
+        var rating_area = document.getElementById("rating_area");
+        rating_area.childNodes.forEach(elem => elem.remove());
+        SendRequest("get", "get_random_comment", "", function(e) {
+            res = JSON.parse(e.response);
+            console.log(res);
+            document.getElementById("text").innerHTML = res.text;
+            let i = 1;
+            while (i < res.rating) {
+                rating_area.appendChild(star.cloneNode(true));
+                i++;
+            }
+        });
+    }
+    get_random_comment();
+    </script>
 {% endmacro %}
 
 {% macro textarea(type) %}
@@ -220,6 +301,7 @@
                         }
                     }
                 }, "json");
+                // get_random_comment();
             }
             $("#myModal").css('display', 'none');
         });

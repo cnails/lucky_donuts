@@ -1,5 +1,6 @@
 import random as random_module
 import sys
+import json
 from collections import deque, defaultdict
 from functools import lru_cache
 from pathlib import Path
@@ -24,6 +25,7 @@ DIRECTORY_DEV = BASE_DIR.joinpath('data_ru', 'protechn_corpus_eval', 'dev')
 DIRECTORY_TEST = BASE_DIR.joinpath('data_ru', 'protechn_corpus_eval', 'test')
 DIRECTORY_MARKUP = BASE_DIR.joinpath('data_ru', 'protechn_corpus_eval', 'markup')
 DIRECTORY_PREDICT = BASE_DIR.joinpath('data_ru', 'protechn_corpus_eval', 'predict')
+DATA_FILE = "../Resources/data.json"
 
 TECHNIQUES = [
     "No", "Remark", "Praise", "Insult", "Bug", "Defect", "Question", "Wish"
@@ -78,6 +80,33 @@ def markup():
 def test():
     return render_template('test.html')
 
+@app.route("/get_random_comment", methods=['GET'])
+def get_random_comment():
+    with open(DATA_FILE, "r") as fd:
+        data = json.load(fd)
+    max_data = 0
+    while True:
+        if max_data == len(data):
+            return
+        i = random_module.randint(0, len(data))
+        if (data[i]['readed'] == 0):
+            break
+        max_data += 1
+    data[i]['readed'] = 1
+    rating = data[i]['Rating']
+    title = data[i]['Title']
+    text = data[i]['Review']
+    res = {}
+    res['rating'] = rating
+    res['title'] = title
+    res['text'] = text
+    with open(DATA_FILE, "w") as fd:
+        fd.write(json.dumps(data))
+    return json.dumps(res)
+
+@app.route('/markup_new', methods=['GET'])
+def markup_new():
+    return render_template('markup_new.html')
 
 @app.route('/random', methods=['GET'])
 def random():
