@@ -71,9 +71,9 @@ def send_pictures(path):
     return send_from_directory('static', path)
 
 
-@app.route('/markup', methods=['GET'])
-def markup():
-    return render_template('markup.html')
+# @app.route('/markup', methods=['GET'])
+# def markup():
+#     return render_template('markup.html')
 
 
 @app.route('/test', methods=['GET'])
@@ -105,7 +105,7 @@ def get_random_comment():
         fd.write(json.dumps(data))
     return json.dumps(res)
 
-@app.route('/markup_new', methods=['GET'])
+@app.route('/markup', methods=['GET'])
 def markup_new():
     return render_template('markup_new.html')
 
