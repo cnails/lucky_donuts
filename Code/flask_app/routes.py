@@ -89,7 +89,8 @@ def get_random_comment():
         if max_data == len(data):
             return
         i = random_module.randint(0, len(data))
-        if (data[i]['readed'] == 0 and int(data[i]['Rating']) < 3):
+        # if (data[i]['readed'] == 0 and int(data[i]['Rating']) < 3):
+        if (data[i]['readed'] == 0):
             break
         max_data += 1
     data[i]['readed'] = 1
