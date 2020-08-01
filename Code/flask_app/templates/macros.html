@@ -19,7 +19,7 @@
 {% macro color(type) %}
     <script>
         function col() {
-            console.log("jere");
+            // console.log("jere");
             let text = localStorage.getItem('text{{ type }}');
             if (text) {
                 $("#textarea{{ type }}").val(text.replace(/(<([^>]+)>)/ig,"").replace(/(&nbsp;)/ig, " ").replace(/(&#8209;)/ig, "-"));
@@ -134,7 +134,7 @@
         // col();
         // const star = document.getElementById("star");
         var rating_area = document.getElementById("rating_area");
-        rating_area.childNodes.forEach(elem => elem.remove());
+        rating_area.querySelectorAll("#star").forEach(elem => elem.remove());
         // 
         localStorage.removeItem('name{{ type }}');
         localStorage.removeItem('list{{ type }}');
@@ -161,9 +161,21 @@
                 document.getElementById("text").appendChild(l);
             };
             // document.getElementById("text").innerHTML = res.text;
-            let i = 2;
-            while (i < res.rating) {
-                rating_area.appendChild(star.cloneNode(true));
+            let i = 1;
+            var color;
+            if (res.rating < 3) {
+                color = "#f0603a";
+            } else if (res.rating == 5) {
+                color = "#67b47d";
+            } else {
+                color = "#fac717";
+            }
+            document.querySelector(".data_text").style.border = "2px solid " + color;
+            while (i <= res.rating) {
+                let new_star = star.cloneNode(true);
+                new_star.style.display = "inline-block";
+                new_star.querySelector("path").setAttribute("fill", color);
+                rating_area.appendChild(new_star);
                 i++;
             }
         });
@@ -296,7 +308,7 @@
                         $.each(TECHNIQUES,
                             function (i, technique) {
                                 $("#answers").prepend(
-                                    '<div class="form-check form-check-inline">\n' +
+                                    '<div class="form-check form-check-inline" style="border: 2px solid ' + getColor(i) + '">\n' +
                                     '<input class="form-check-input" type="radio" name="inlineRadioOptions" id="inlineRadio' +
                                     (i + 1) + '" value="' + (i + 1) + '">\n' + '<label class="form-check-label" for="inlineRadio' +
                                     (i + 1) + '">' + technique + '</label>\n' + '</div>'
