@@ -1,10 +1,3 @@
-Обучение моделей производится в отдельной jupyter-тетрадке
-jupyter_notebooks/training_models.ipynb
-(мы обучали на google colab-е, поэтому там могут быть colab-специфичные куски кода).
-
-Визуализация данных производилась в отдельной jupyter-тетрадке
-jupyter_notebooks/count_statistics_and_draw_graphs.ipynb
-
 По умолчанию предобученные модели берутся из папки ```trained_models```,
 поэтому, чтобы запустить предобученную модель на тесте, её нужно положить
 в эту папку.
@@ -19,8 +12,6 @@ jupyter_notebooks/count_statistics_and_draw_graphs.ipynb
 8) BERT_MULTIGRAN_model_relu.pt
 9) BERT_MULTIGRAN_model_sigmoid.pt
 10) BERT_ru.pt
-
-Обученные модели доступны на Google Drive: https://drive.google.com/drive/folders/1c1Hdt6a9vVXb_b4kzUpzpAAf25csuwLj?usp=sharing.
 
 В папке ```data_ru``` лежат все размеченные тексты.
 
