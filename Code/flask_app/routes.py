@@ -22,7 +22,8 @@ from flask_app.my_layers import Attention, Average, WeightedSum, WeightedAspectE
 from hp import BATCH_SIZE, BERT_PATH, JOINT_BERT_PATH, GRANU_BERT_PATH, MGN_SIGM_BERT_PATH
 # from keras.models import load_model as keras_load_model
 from tensorflow.keras.models import load_model as keras_load_model
-from keras.preprocessing import sequence
+# from keras.preprocessing import sequence
+from tensorflow.keras.preprocessing import sequence
 from preprocess import read_data, clean_text
 from settings import load_model
 from torch.utils import data
