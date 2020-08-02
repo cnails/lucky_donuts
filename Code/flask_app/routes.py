@@ -535,12 +535,14 @@ def launch_model():
             lst[i].add(HUMAN_READABLE_TECHNIQUES[TECHNIQUES.index(inner_lst[-3])])
             source_lst[i].add(inner_lst[-3])
 
+    extracts_s_e = []
     extracts = []
     categories = []
     for elem in fi:
         if elem[0] != str(id_):
             continue
         _, category, start, end = elem
+        extracts_s_e.append((start, end))
         extracts.append(text[start:end])
         categories.append(category)
 
@@ -584,6 +586,9 @@ def launch_model():
             print(f'{extracts[i]}: {[aspects[label] for label in labels][::-1]}')
 
     correct_lst = ['; '.join(list(elem)) for elem in lst]
+    # for i in range(len(extracts)):
+    #     s, e = extracts_s_e[i]
+    #     correct_lst[s:e] = [f'{correct_lst[j]}{[aspects[label] for label in label_ids[i]][::-1]}' for j in range(s, e)]
     write_existent_dict(id_, source_lst, directory=DIRECTORY_MARKUP)
 
     for f in glob.glob(f'{DIRECTORY_PREDICT}/*'):
