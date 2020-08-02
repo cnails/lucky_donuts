@@ -14,7 +14,7 @@ Flask-WTF==0.14.3
 Flask-Uploads==0.2.1
 werkzeug==0.16.1
 
-nltk==3.2.5
+nltk==3.4.5
 scipy==1.2.1
 tensorflow~=1.4
 keras~=2.0
