@@ -3,6 +3,15 @@
 {% block active_third %}active{% endblock %}
 
 {% block content %}
+    <style>
+        .first_child, .second_child {
+            height: 96%;
+            /* display: inline-block; */
+        }
+        /* .second_child {
+            
+        } */
+    </style>
     <div class="parent">
         <div class="first_child">
             <form class="form" action="{{ url_for('index') }}" method="POST">
