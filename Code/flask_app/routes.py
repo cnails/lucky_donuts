@@ -588,15 +588,16 @@ def launch_model():
             print(f'{extracts[i]}: {[aspects[label] for label in labels][::-1]}')
 
     correct_lst = ['; '.join(list(elem)) for elem in lst]
-    # for i in range(len(extracts)):
-    #     s, e = extracts_s_e[i]
-    #     correct_lst[s:e] = [f'{correct_lst[j]}{[aspects[label] for label in label_ids[i]][::-1]}' for j in range(s, e)]
+    commands = {
+        extract: ([aspects[label] for label in label_ids[i]][::-1], []) for i, extract in enumerate(extracts)
+    }
     write_existent_dict(id_, source_lst, directory=DIRECTORY_MARKUP)
 
     for f in glob.glob(f'{DIRECTORY_PREDICT}/*'):
         os.remove(f)
 
-    return jsonify(result={'id': id_, 'list': correct_lst, 'text': text, 'prop_sents': prop_sents})
+    return jsonify(result={'id': id_, 'list': correct_lst, 'text': text, 'prop_sents': prop_sents,
+                           'commands': commands})
 
 
 def get_num_of_techniques_for_id(id_, directory=DIRECTORY_TRAIN):
