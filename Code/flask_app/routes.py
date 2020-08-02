@@ -1,23 +1,48 @@
-import random as random_module
-import sys
+import codecs
+import glob
 import json
+import operator
+import os
+import random as random_module
+import re
 from collections import deque, defaultdict
 from functools import lru_cache
 from pathlib import Path
 
+import flask_app.utils as U
+import keras.backend as K
 import nltk
-from flask import render_template, request, jsonify, send_from_directory
-from torch.utils import data
-
+import numpy as np
 from data_load import PropDataset, pad
 from eval.convert import convert, remove_duplicates
+from flask import render_template, request, jsonify, send_from_directory
 from flask_app import app, criterion, binary_criterion
+from flask_app.my_layers import Attention, Average, WeightedSum, WeightedAspectEmb, MaxMargin
 from hp import BATCH_SIZE, BERT_PATH, JOINT_BERT_PATH, GRANU_BERT_PATH, MGN_SIGM_BERT_PATH
+from keras.models import load_model as keras_load_model
+from keras.preprocessing import sequence
 from preprocess import read_data, clean_text
 from settings import load_model
+from torch.utils import data
+from tqdm.notebook import tqdm
 from train import eval
+from pymorphy2 import MorphAnalyzer
+from nltk.tokenize import RegexpTokenizer
+import tensorflow as tf
 
-sys.path.append('../secret_repo')
+global graph
+graph = tf.get_default_graph()
+
+parser = U.add_common_args()
+args = parser.parse_args()
+
+out_dir = os.path.join(args.out_dir_path, args.domain)
+U.print_args(args)
+
+num_regex = re.compile('^[+-]?[0-9]+\.?[0-9]*$')
+
+m = MorphAnalyzer()
+tokenizer = RegexpTokenizer(r'\w+')
 
 BASE_DIR = Path.cwd()
 DIRECTORY_TRAIN = BASE_DIR.joinpath('data_ru', 'protechn_corpus_eval', 'train')
@@ -80,6 +105,7 @@ def send_pictures(path):
 def test():
     return render_template('test.html')
 
+
 @app.route("/get_random_comment", methods=['GET'])
 def get_random_comment():
     with open(DATA_FILE, "r") as fd:
@@ -105,9 +131,11 @@ def get_random_comment():
         fd.write(json.dumps(data))
     return json.dumps(res)
 
+
 @app.route('/markup', methods=['GET'])
 def markup():
     return render_template('markup_new.html')
+
 
 @app.route('/random', methods=['GET'])
 def random():
@@ -294,6 +322,129 @@ def overwrite_one_article(id_, directory=DIRECTORY_PREDICT):
     return sent_text
 
 
+def is_number(token):
+    return bool(num_regex.match(token))
+
+
+def create_vocab(maxlen=0, vocab_size=0):
+    word_freqs = {}
+
+    fin = codecs.open(os.path.join('flask_app', 'preprocessed_data', 'reviews', 'train.txt'), 'r', 'utf-8')
+    for line in fin:
+        words = line.split()
+        if maxlen > 0 and len(words) > maxlen:
+            continue
+
+        for w in words:
+            if not is_number(w):
+                try:
+                    word_freqs[w] += 1
+                except KeyError:
+                    word_freqs[w] = 1
+
+    sorted_word_freqs = sorted(word_freqs.items(), key=operator.itemgetter(1), reverse=True)
+
+    vocab = {'<pad>': 0, '<unk>': 1, '<num>': 2}
+    index = len(vocab)
+    for word, _ in sorted_word_freqs:
+        vocab[word] = index
+        index += 1
+        if vocab_size > 0 and index > vocab_size + 2:
+            break
+
+    return vocab
+
+
+vocab = create_vocab(args.maxlen, args.vocab_size)
+
+
+def read_train_dataset(maxlen):
+    maxlen_x = 0
+    source = codecs.open(os.path.join('flask_app', 'preprocessed_data', 'reviews', 'train.txt'), 'r', 'utf-8')
+    for line in source:
+        words = line.strip().split()
+        if maxlen > 0 and len(words) > maxlen:
+            words = words[:maxlen]
+        if not words:
+            continue
+        if maxlen_x < len(words):
+            maxlen_x = len(words)
+    return maxlen_x
+
+
+train_maxlen = read_train_dataset(args.maxlen)
+
+
+def read_dataset(lines, vocab, maxlen):
+    maxlen_x = 0
+    data_x = []
+
+    for line in lines:
+        words = line.strip().split()
+        if maxlen > 0 and len(words) > maxlen:
+            words = words[:maxlen]
+        if not words:
+            continue
+
+        indices = []
+        for word in words:
+            if is_number(word):
+                indices.append(vocab['<num>'])
+            elif word in vocab:
+                indices.append(vocab[word])
+            else:
+                indices.append(vocab['<unk>'])
+
+        data_x.append(indices)
+        if maxlen_x < len(indices):
+            maxlen_x = len(indices)
+
+    return data_x, maxlen_x
+
+
+def get_data(lines, vocab_size=0, maxlen=0):
+    test_x, test_maxlen = read_dataset(lines, vocab, maxlen)
+    return test_x, test_maxlen
+
+
+# def pymorphy_to_udpipe(pos):
+#     dct = {
+#         'NOUN': 'NOUN',
+#         'ADJF': 'ADJ',
+#         'ADJS': 'ADJ',
+#         'COMP': 'ADV',
+#         'VERB': 'VERB',
+#         'INFN': 'VERB',
+#         'PRTF': 'ADJ',
+#         'PRTS': 'ADJ',
+#         'GRND': 'VERB',
+#         'NUMR': 'NUM',
+#         'ADVB': 'ADV',
+#         'NPRO': 'PRON',
+#         'PRED': 'ADV',
+#         'PREP': 'ADP',
+#         'CONJ': 'CCONJ',
+#         'PRCL': 'PART',
+#         'INTJ': 'INTJ'
+#     }
+#     if pos is None:
+#         return ''
+#     assert pos in dct
+#     return dct[pos]
+
+
+def normalize(text):
+    tokens = tokenizer.tokenize(text.lower())
+    lemmas = []
+    pos = []
+    for token in tokens:
+        tag = m.parse(token)[0]
+        lemmas.append(tag.normal_form)
+        # pos.append(pymorphy_to_udpipe(tag.tag.POS))
+
+    return lemmas  # , pos возвращает два массива (массив лем и массив частей речи, массивы сопряжены)
+
+
 @app.route('/_launch_model', methods=['POST'])
 def launch_model():
     full_text = request.form['full_text']
@@ -370,6 +521,7 @@ def launch_model():
     fi, prop_sents = convert(NUM_TASK - 1, flat_texts, tmp_file)
     prop_sents = prop_sents[id_]
     prop_sents = ['1' if elem else '' for elem in prop_sents]
+
     results = remove_duplicates(fi)
 
     DIRECTORY_PREDICT.joinpath(f'article{id_}.txt').rename(
@@ -382,8 +534,56 @@ def launch_model():
             lst[i].add(HUMAN_READABLE_TECHNIQUES[TECHNIQUES.index(inner_lst[-3])])
             source_lst[i].add(inner_lst[-3])
 
+    extracts = []
+    categories = []
+    for elem in fi:
+        if elem[0] != str(id_):
+            continue
+        _, category, start, end = elem
+        extracts.append(text[start:end])
+        categories.append(category)
+
+    extracts = [' '.join(normalize(extract.strip())) for extract in extracts if extract]
+    print(f'extracts: {extracts}')
+
+    test_x, test_maxlen = get_data(extracts, vocab_size=args.vocab_size, maxlen=args.maxlen)
+    test_x = sequence.pad_sequences(test_x, maxlen=max(train_maxlen, test_maxlen))
+
+    test_length = test_x.shape[0]
+    splits = []
+    for i in range(1, test_length // args.batch_size):
+        splits.append(args.batch_size * i)
+    if test_length % args.batch_size:
+        splits += [(test_length // args.batch_size) * args.batch_size]
+    test_x = np.split(test_x, splits)
+
+    with graph.as_default():
+        aspect_model = keras_load_model(os.path.join('flask_app', 'output', 'reviews', 'model_param'),
+                                        custom_objects={"Attention": Attention, "Average": Average,
+                                                        "WeightedSum": WeightedSum,
+                                                        "MaxMargin": MaxMargin, "WeightedAspectEmb": WeightedAspectEmb,
+                                                        "max_margin_loss": U.max_margin_loss},
+                                        compile=True)
+
+        test_fn = K.function([aspect_model.get_layer('sentence_input').input, K.learning_phase()],
+                             [aspect_model.get_layer('att_weights').output, aspect_model.get_layer('p_t').output])
+        aspect_probs = []
+
+        for batch in tqdm(test_x):
+            _, cur_aspect_probs = test_fn([batch, 0])
+            aspect_probs.append(cur_aspect_probs)
+
+        aspect_probs = np.concatenate(aspect_probs)
+
+        label_ids = np.argsort(aspect_probs, axis=1)
+
+        print(fi, label_ids)
+
     correct_lst = ['; '.join(list(elem)) for elem in lst]
     write_existent_dict(id_, source_lst, directory=DIRECTORY_MARKUP)
+
+    for f in glob.glob(f'{DIRECTORY_PREDICT}/*'):
+        os.remove(f)
 
     return jsonify(result={'id': id_, 'list': correct_lst, 'text': text, 'prop_sents': prop_sents})
 
