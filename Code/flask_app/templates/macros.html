@@ -22,6 +22,7 @@
             // console.log("jere");
             let text = localStorage.getItem('text{{ type }}');
             if (text) {
+                text = text.replace(/\s\s+/g, ' ').trim()
                 $("#textarea{{ type }}").val(text.replace(/(<([^>]+)>)/ig,"").replace(/(&nbsp;)/ig, " ").replace(/(&#8209;)/ig, "-"));
                 $("#text{{ type }}").empty().append(text);
                 let name = localStorage.getItem('name{{ type }}');
@@ -193,7 +194,7 @@
         // updates text field and empties id of the text
         $('#textarea{{ type }}').on('input', function() {
 
-            let str = $(this).val();
+            let str = $(this).val().replace(/\s\s+/g, ' ').trim();
             let full_str = textToSpans(str, "{{ type }}");
             $("#textarea{{ type }}").val(full_str.replace(/(<([^>]+)>)/ig,"").replace(/(&nbsp;)/ig, " ").replace(/(&#8209;)/ig, "-"));
             $("#text{{ type }}").empty().append(full_str);
@@ -225,7 +226,7 @@
                         data = data.result;
                         $("#span_id{{ type }}").attr('name', data.id);
 
-                        let str = data.text;
+                        let str = data.text.replace(/\s\s+/g, ' ').trim();
                         let full_str = textToSpans(str, "{{ type }}");
                         $("#textarea{{ type }}").val(full_str.replace(/(<([^>]+)>)/ig,"").replace(/(&nbsp;)/ig, " ").replace(/(&#8209;)/ig, "-"));
                         $("#text{{ type }}").empty().append(full_str);
@@ -242,6 +243,7 @@
 
                         let text = localStorage.getItem('text{{ type }}');
                         if (text) {
+                            text = text.replace(/\s\s+/g, ' ').trim();
                             $("#textarea{{ type }}").val(text.replace(/(<([^>]+)>)/ig,"").replace(/(&nbsp;)/ig, " ").replace(/(&#8209;)/ig, "-"));
                             $("#text{{ type }}").empty().append(text);
                             let name = localStorage.getItem('name{{ type }}');
