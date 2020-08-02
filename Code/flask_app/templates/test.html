@@ -3,6 +3,15 @@
 {% block active_third %}active{% endblock %}
 
 {% block content %}
+    <style>
+        .first_child, .second_child {
+            height: 96%;
+        }
+        #commands {
+            display: flex;
+            flex-direction: column;
+        }
+    </style>
     <div class="parent">
         <div class="first_child">
             <form class="form" action="{{ url_for('index') }}" method="POST">
@@ -35,6 +44,9 @@
             <div>
                 <span style="display:none;" name="" id="span_id_test"></span>
                 <p style="white-space: pre" id="text_test">{{ text }}</p>
+            </div>
+            <div id="commands">
+
             </div>
         </div>
     </div>

@@ -10,7 +10,8 @@ from functools import lru_cache
 from pathlib import Path
 
 import flask_app.utils as U
-import keras.backend as K
+# import keras.backend as K
+import tensorflow.keras.backend as K
 import nltk
 import numpy as np
 from data_load import PropDataset, pad
@@ -19,7 +20,8 @@ from flask import render_template, request, jsonify, send_from_directory
 from flask_app import app, criterion, binary_criterion
 from flask_app.my_layers import Attention, Average, WeightedSum, WeightedAspectEmb, MaxMargin
 from hp import BATCH_SIZE, BERT_PATH, JOINT_BERT_PATH, GRANU_BERT_PATH, MGN_SIGM_BERT_PATH
-from keras.models import load_model as keras_load_model
+# from keras.models import load_model as keras_load_model
+from tensorflow.keras.models import load_model as keras_load_model
 from keras.preprocessing import sequence
 from preprocess import read_data, clean_text
 from settings import load_model
