@@ -28,6 +28,7 @@ from tqdm.notebook import tqdm
 from train import eval
 from pymorphy2 import MorphAnalyzer
 from nltk.tokenize import RegexpTokenizer
+from flask_app.aspects_dict import aspects
 import tensorflow as tf
 
 global graph
@@ -547,7 +548,7 @@ def launch_model():
     print(f'extracts: {extracts}')
 
     # CHECK
-    extracts = [word for sent in extracts for word in sent.split()]
+    # extracts = [word for sent in extracts for word in sent.split()]
 
     test_x, test_maxlen = get_data(extracts, vocab_size=args.vocab_size, maxlen=args.maxlen)
     test_x = sequence.pad_sequences(test_x, maxlen=max(train_maxlen, test_maxlen))
@@ -578,9 +579,9 @@ def launch_model():
 
         aspect_probs = np.concatenate(aspect_probs)
 
-        label_ids = np.argsort(aspect_probs, axis=1)
-
-        print(fi, label_ids)
+        label_ids = np.argsort(aspect_probs, axis=1)[:, -5:]
+        for i, labels in enumerate(label_ids):
+            print(f'{extracts[i]}: {[aspects[label] for label in labels][::-1]}')
 
     correct_lst = ['; '.join(list(elem)) for elem in lst]
     write_existent_dict(id_, source_lst, directory=DIRECTORY_MARKUP)

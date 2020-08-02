@@ -1,8 +1,8 @@
 # torch
 torch
-# pytorch-pretrained-bert==0.4
-# numpy==1.16.4
-# scikit-learn==0.21.2
+pytorch-pretrained-bert==0.4
+numpy==1.16.4
+scikit-learn==0.21.2
 requests==2.22.0
 beautifulsoup4==4.9.0
 pathlib==1.0.1
@@ -14,5 +14,12 @@ Flask-WTF==0.14.3
 Flask-Uploads==0.2.1
 werkzeug==0.16.1
 
-# nltk
 nltk==3.2.5
+scipy==1.2.1
+tensorflow~=1.4
+keras~=2.0
+gensim==3.1
+pymorphy2==0.8
+tqdm
+
+
