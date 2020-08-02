@@ -18,6 +18,24 @@
 
 {% macro color(type) %}
     <script>
+        function getCommands() {
+            SendRequest("get", "??функция, которая возвращает список команд в виде массива??", "?? здесь можно передать get параметры ??", function(e) {
+                console.log(e.response);
+                var teamArea = document.getElementById("commands");
+                res = JSON.parse(e.response);
+                res.forEach(team => {
+                    let new_team = document.createElement("p");
+                    new_team.classList.add("team");
+                    new_team.innerHTML = team;
+                    commands.appendChild(new_team);
+                });
+            });
+        }
+    </script>
+{% endmacro %}
+
+{% macro color(type) %}
+    <script>
         function col() {
             // console.log("jere");
             let text = localStorage.getItem('text{{ type }}');
