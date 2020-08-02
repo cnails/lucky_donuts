@@ -2,16 +2,7 @@
 поэтому, чтобы запустить предобученную модель на тесте, её нужно положить
 в эту папку.
 Допустимые названия моделей:
-1) BERT.pt
-2) BERT_GRAN_model_ru.pt
-3) BERT_JOINT_model_ru.pt
-4) BERT_MULTIGRAN_model_relu_ru.pt
-5) BERT_MULTIGRAN_model_sigmoid_ru.pt
-6) BERT_GRAN_model.pt
-7) BERT_JOINT_model.pt
-8) BERT_MULTIGRAN_model_relu.pt
-9) BERT_MULTIGRAN_model_sigmoid.pt
-10) BERT_ru.pt
+1) BERT_MULTIGRAN_model_sigmoid_ru.pt
 
 В папке ```data_ru``` лежат все размеченные тексты.
 
