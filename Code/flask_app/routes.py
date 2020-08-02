@@ -546,9 +546,6 @@ def launch_model():
     extracts = [' '.join(normalize(extract.strip())) for extract in extracts if extract]
     print(f'extracts: {extracts}')
 
-    # CHECK
-    extracts = [word for sent in extracts for word in sent.split()]
-
     test_x, test_maxlen = get_data(extracts, vocab_size=args.vocab_size, maxlen=args.maxlen)
     test_x = sequence.pad_sequences(test_x, maxlen=max(train_maxlen, test_maxlen))
 

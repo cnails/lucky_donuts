@@ -6,6 +6,9 @@ torch
 requests==2.22.0
 beautifulsoup4==4.9.0
 pathlib==1.0.1
+# keras
+# tensorflow
+# pymorphy2
 
 # Flask
 Flask==1.1.1
