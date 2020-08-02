@@ -208,7 +208,8 @@
             }
             $("#span_id{{ type }}").attr("name", "");
             {% if type|string() == '_test' %}
-                let full_text = $("#text{{ type }}").text().toString();
+                let full_text = $("#text{{ type }}").text().toString().replace(/\s\s+/g, ' ').trim();
+                console.log(full_text);
                 let id_ = parseInt($("#span_id{{ type }}").attr('name'));
                 if (!id_)
                     id_ = null;
